@@ -1,6 +1,25 @@
 install.packages(c('terra','mapview','sf','stars','caret','devtools', 
                    'leafsync', 'nlme', 'lwgeom', 'mapedit', 'exactextractr'))
 
+# Install and load the curl package
+if (!require(curl)) {
+  install.packages("curl")
+  library(curl)
+}
+
+# Install and load the archive package
+if (!require(archive)) {
+  install.packages("archive")
+  library(archive)
+}
+
+
+# Download orthomosaics
+curl_download("https://data.cyverse.org/dav-anon/iplant/projects/phytooracle/data_to_share/2024_maize_orthos.zip", destfile = "2024_maize_orthos.zip")
+unzip("./2024_maize_orthos.zip") 
+# Unzip the file
+archive::archive_extract("2024_maize_orthos.zip") #, dir = "2024_maize_orthos")
+
 # Download FIELDimageR from the provided GitHub link
 download.file("https://github.com/OpenDroneMap/FIELDimageR/archive/refs/heads/master.zip", destfile = "FIELDimageR-master.zip")
 
