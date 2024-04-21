@@ -1,5 +1,6 @@
 install.packages(c('terra','mapview','sf','stars','caret','devtools', 
-                   'leafsync', 'nlme', 'lwgeom', 'mapedit', 'exactextractr'))
+                   'leafsync', 'nlme', 'lwgeom', 'mapedit', 'exactextractr',
+                   'doParallel'))
 
 # Install and load the curl package
 if (!require(curl)) {
@@ -13,6 +14,8 @@ if (!require(archive)) {
   library(archive)
 }
 
+install.packages("BiocManager")
+BiocManager::install("EBImage")
 
 # Download orthomosaics
 curl_download("https://data.cyverse.org/dav-anon/iplant/projects/phytooracle/data_to_share/2024_maize_orthos.zip", destfile = "2024_maize_orthos.zip")
