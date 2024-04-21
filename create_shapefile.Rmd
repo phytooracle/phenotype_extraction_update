@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+# output: html_notebook
+editor_options: 
+  chunk_output_type: console
+output: 
+  html_notebook: 
+    fig_caption: yes
+fig_width: 6 
+fig_height: 4 
+---
+
+
+
+```{r}
+library(FIELDimageR)
+library(FIELDimageR.Extra)
+library(raster)
+library(terra)
+library(mapview)
+library(sf)
+library(stars)
+
+library(rgdal)
+library(sp)
+library(rgeos)
+```
+
+```{r}
+# Open the orthomosaic
+# EX1 <- rast("downsampled_orthos/6_16_2023_F120_Beans_P4_15m_RGB_transparent_mosaic_group1_downsample.tif")
+EX1 <- rast("2024_maize_orthos/rgb/4_17_2024_Field8_Maize_P4_15m_RGB_transparent_mosaic_group1.tif")
+
+# Reduce resolution
+EX1<-aggregate(EX1, fact=10)
+
+# Plot the image
+plotRGB(EX1, r = 1, g = 2, b =3)
+```
+
+```{r, fig.align = "left"}
+aoi<-fieldView(EX1,editor = TRUE)
+EX1.Crop<-crop(EX1,aoi) # For heavy images (large, high resolution, etc.) please use: fast.plot=T
+fieldView(EX1.Crop)
+```
+
+```{r}
+# Remove the soil pixels, keep plant pixels
+EX1.RemSoil <- rast(fieldMask(mosaic = EX1.Crop, Red = 1, Green = 2, Blue = 3, index = "HUE"))
+```
+
+```{r}
+### Field map identification 
+# Must add rows to fieldmap for split rows
+DataTable<-read.csv("fieldmaps/2024_Maize_Fieldmap.csv",header = T, check.names = FALSE)
+names(DataTable) <- make.names(names(DataTable))
+
+# Select the columns you're interested in
+DataTable <- DataTable[, c("plot", "range", "column")]
+
+
+fieldMap<-fieldMap(fieldPlot=DataTable$plot, fieldRow=DataTable$column, fieldColumn=DataTable$range, decreasing=T)
+names(fieldMap) <- make.names(names(fieldMap))
+
+# Create a shapefile - interactive
+# It is very important to highlight that four points need to be set at the corners of the trial according to the
+# following sequence (1st point) top left corner, (2nd point) top right corner, (3rd point) bottom right
+# corner, and (4th point) bottom left corner.(i.e. clockwise from the top left)
+EX1.Shape<-fieldShape_render(mosaic = EX1.Crop, ncols = 18, nrows = 26, fieldMap = fieldMap, fieldData = DataTable, PlotID = "plot")
+
+# View Shapefile
+fieldView(mosaic = EX1.Crop,
+          fieldShape = EX1.Shape,
+          type = 2,
+          alpha = 0.2)
+
+```
+
+```{r}
+# Set the output file name
+output_file <- "shapefile/2024_maize.shp"
+
+# Save the shapefile to a file
+st_write(EX1.Shape, dsn = output_file, driver = "ESRI Shapefile")
+```

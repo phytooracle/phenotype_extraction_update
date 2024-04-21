@@ -1,0 +1,64 @@
+---
+title: "create_fieldmap"
+#output: html_document
+date: "2024-04-10"
+editor_options: 
+  chunk_output_type: console
+output: 
+  html_notebook: 
+    fig_caption: yes
+fig_width: 6 
+fig_height: 4 
+---
+
+# Load Libraries
+```{r}
+library(dplyr)
+```
+
+```{r}
+# If the field does not have split rows, you can you the fieldbook as the fieldmap. 
+# If the field is orientated north-south, this will not work
+# If the field has more than 50 ranges, this will not work
+
+### Fieldbook
+path <- "fieldmaps/2024_Maize_Fieldbook.csv"
+
+fieldbook <- read.csv(path,header = T)
+
+# Must add columns to fieldmap for split rows
+# Step 1: Add 2 to all values above half in column
+half_value <- max(fieldbook$column) / 2
+
+fieldbook$column[fieldbook$column > half_value] <- fieldbook$column[fieldbook$column > half_value] + 2
+
+# Step 2: Add 2 new rows for all values in range
+new_rows <- data.frame()
+for (range in unique(fieldbook$range)) {
+    new_rows <- rbind(new_rows, c(range = sprintf("%02d", range), column = half_value+1, plot = paste0(90,sprintf("%02d", range))))
+    new_rows <- rbind(new_rows, c(range = sprintf("%02d", range), column = half_value+2, plot = paste0(90,range+max(fieldbook$range))))
+}
+
+colnames(new_rows) <- c("range", "column", "plot")
+
+fieldbook$range <- sprintf("%02d", fieldbook$range)
+fieldbook$column <- sprintf("%02d", fieldbook$column)
+fieldbook$plot <- sprintf("%04d", fieldbook$plot)
+new_rows$range <- sprintf("%02s", new_rows$range)
+new_rows$column <- sprintf("%02s", new_rows$column)
+new_rows$plot <- sprintf("%04s", new_rows$plot)
+
+new_rows$type <- "skip"
+
+# Add the new rows to the original fieldbook
+fieldmap <- bind_rows(fieldbook, new_rows)
+
+# Remove the ".tif" substring from the ortho_path string
+result <- stringr::str_replace(basename(path), "book", "map")
+result <- paste0("./fieldmaps/",result)
+
+# Save the fieldmap to a new CSV file
+write.csv(fieldmap, result, row.names = FALSE)  
+
+```
+
