@@ -32,7 +32,7 @@ library(rgeos)
 EX1 <- rast("2024_maize_orthos/rgb/4_17_2024_Field8_Maize_P4_15m_RGB_transparent_mosaic_group1.tif")
 
 # Reduce resolution
-EX1<-aggregate(EX1, fact=10)
+EX1<-aggregate(EX1, fact=4)
 
 # Plot the image
 plotRGB(EX1, r = 1, g = 2, b =3)
@@ -58,8 +58,11 @@ names(DataTable) <- make.names(names(DataTable))
 # Select the columns you're interested in
 DataTable <- DataTable[, c("plot", "range", "column")]
 
-
 fieldMap<-fieldMap(fieldPlot=DataTable$plot, fieldRow=DataTable$column, fieldColumn=DataTable$range, decreasing=T)
+
+# Rotate matrix about x-axis (reverse order of rows)
+fieldMap <- fieldMap[nrow(fieldMap):1, ]
+
 names(fieldMap) <- make.names(names(fieldMap))
 
 # Create a shapefile - interactive
@@ -78,7 +81,7 @@ fieldView(mosaic = EX1.Crop,
 
 ```{r}
 # Set the output file name
-output_file <- "shapefile/2024_maize.shp"
+output_file <- "shapefile/2024_maize_updated.shp"
 
 # Save the shapefile to a file
 st_write(EX1.Shape, dsn = output_file, driver = "ESRI Shapefile")

@@ -23,7 +23,7 @@ DSM_path <- "./2024_maize_orthos/dsm/"
 DSM0 <- rast("./2024_maize_orthos/dsm/3_18_2024_Field8_Maize_P4_15m_RGB_dsm_offset.tif")
 
 # Open shapefile 
-EX1.Shape<- st_read("./shapefile/2024_maize.shp") 
+EX1.Shape<- st_read("./shapefile/2024_maize_updated.shp") 
 
 # Get a list of all files ending in "_downsample.tif"
 files <- list.files(path = folder_path, pattern = "\\.tif$")
