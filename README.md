@@ -2,10 +2,9 @@
 
 This R notebook is written to extract phenotype information from drone imagery using [FieldImageR](https://github.com/OpenDroneMap/FIELDimageR). This repo contains the following:
 
-- Orthomosaics: `dwonsampled_orthos\`
-- DSMs: `DSM\` Files are too large for github
-- Fieldmap: `fieldmaps\F120_beans_2023_fieldmap.csv`
-- R notebooks: `create_fieldmap.Rmd, create_shapefile.Rmd, extract_canopy_cover.Rmd, extract_plant_height.Rmd`
+- Shapefile: `shapefile\` containing the spatial polygons representing field plots. 
+- Fieldmap: `fieldmaps\` containing the spatial organization of field plots.
+- R notebooks: `install_fieldimager.R, create_fieldmap.Rmd, create_shapefile.Rmd, extract_all_phenotypes_fieldimager.R`
 
 We will use these files to test FieldImageR
 
@@ -13,9 +12,8 @@ We will use these files to test FieldImageR
 
 - [Download the GitHub repo](#download-the-github-repo)
 - [Install FieldImageR](#install-fieldimager)
-- [Run R notebook](#run-r-notebook)
-- [Direct figures to the console](#direct-figures-to-the-console)
-- [Troubleshooting](#troubleshooting)
+- [Create fieldmap and shapefile](#create-fieldmap-and-shapefile)
+- [Run phenotype extraction script](#run-phenotype-extraction-script)
 
 ## Download the GitHub repo
 
@@ -35,66 +33,21 @@ In RStudio, set the working directory to this copied path:
 
 ![Alt text](img/set_wd.png?raw=true "Title")
 
-<!-- ![Alt text](img/open_folder.png?raw=true "Title") -->
-
 ![Alt text](img/home_dir.png?raw=true "Title")
 
 ## Install FieldImageR
+To install FieldImageR, FieldImageR.Extra, and dependencies, run the ```install_fieldimager.R``` script.
 
-We must first install devtools, which allows us to install software from GitHub:
+> **Note:** This script will also download red-green-blue (RGB) and digital surface model (DSM) orthomosaics from our 2024 maize trial.
 
-```
-install.packages("devtools")
-```
+## Create fieldmap and shapefile
+Before extraction, we must create a fieldmap and shapefile.
 
-![Alt text](img/install_devtools.png?raw=true "Title")
+To create a fieldmap, run the ```create_fieldmap.Rmd``` notebook.
 
-We can now install FieldImageR:
+To create a shapefile, run the ```create_shapefile.Rmd``` notebook.
 
-```
-devtools::install_github("OpenDroneMap/FIELDimageR")
-```
+> **Note:** Generating the fieldmap and shapefile is the responsibility of the graduate student or postdoc in charge of the project. These files are generated once per season and shared with the lab member who will be running processing.
 
-![Alt text](img/install_fieldimageR.png?raw=true "Title")
-
-Confirm the successful installation of FieldImageR by searching for "FIELDimageR" in your Packages section. If you see the package, the installation was successful. Try the installation again if you do not see the package.
-
-![Alt text](img/install_confirm.png?raw=true "Title")
-
-# Old Readme Info
-
-## Run R notebook
-<!-- 
-Before running the code, we need to download the orthomosaic by [clicking here](https://data.cyverse.org/dav-anon/iplant/projects/phytooracle/season_16_sorghum_yr_2023/level_1/drone/North-Cardon-Lane-7-6-2023-orthophoto.tif). -->
-
-<!-- Make sure that the orthomosaic is in your working directory:
-
-![Alt text](img/ortho_working.png?raw=true "Title") -->
-
-Let's try to run the R notebook named `testing_fieldimageR.Rmd` in the current repo. Click on Run > Run All:
-
-![Alt text](img/run_code.png?raw=true "Title")
-
-By default, RStudio displays figures inline, which creates a problem when trying to run certain FieldImageR functions:
-
-![Alt text](img/error.png?raw=true "Title")
-
-## Direct figures to the console
-
-To fix this, we need to direct figure outputs to the console:
-
-![Alt text](img/fix_error.png?raw=true "Title")
-
-Now, the figures will be directed to the console, and we can now select points:
-
-![Alt text](img/point_selection.png?raw=true "Title")
-
-## Troubleshooting
-
-There are some cases where the mouse cursor locations are offset. This is often due to the scale of your display. 
-
-To fix this in Windows, go to Settings > Display > Scale and change it to 100%. If this is set to anything other than 100%, your mouse cursor locations will be offset.
-
-On my display, the recommended setting is 150%, but this resulted in issues with my cursor locations, so I switched to 100%:
-
-![Alt text](img/scale_setting.png?raw=true "Title")
+## Run phenotype extraction script
+To run phenotype extraction, including vegetation indices, canopy cover, and plant height, run the ```extract_all_phenotypes_fieldimager.R``` file.
