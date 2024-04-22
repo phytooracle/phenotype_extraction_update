@@ -8,6 +8,11 @@ library(sf)
 library(stars)
 library(dplyr)
 
+# Create 'outputs' directory
+if (!dir.exists("outputs")) {
+  dir.create("outputs")
+}
+
 # Set the path to the "downsampled_orthos" folder
 folder_path <- "./2024_maize_orthos/rgb/"
 
