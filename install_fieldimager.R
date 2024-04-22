@@ -1,6 +1,7 @@
 install.packages(c('terra','mapview','sf','stars','caret','devtools', 
                    'leafsync', 'nlme', 'lwgeom', 'mapedit', 'exactextractr',
-                   'doParallel'))
+                   'doParallel', 'attempt', 'config', 'DT', 'git2r',
+                   'DescTools'))
 
 # Install and load the curl package
 if (!require(curl)) {
@@ -25,10 +26,6 @@ archive::archive_extract("2024_maize_orthos.zip") #, dir = "2024_maize_orthos")
 
 # Download FIELDimageR from the provided GitHub link
 download.file("https://github.com/OpenDroneMap/FIELDimageR/archive/refs/heads/master.zip", destfile = "FIELDimageR-master.zip")
-
-# Set the working directory to the location where the zip file is saved
-setwd("~/") # Adjust this to your actual working directory
-
 # Unzip and install FIELDimageR
 unzip("FIELDimageR-master.zip") 
 file.rename("FIELDimageR-master", "FIELDimageR") 
@@ -40,8 +37,6 @@ install.packages(fieldimageR_filename, repos = NULL, type="source")
 
 # Assuming you also want to download and install FIELDimageR.Extra
 download.file("https://github.com/filipematias23/FIELDimageR.Extra/archive/refs/heads/main.zip", destfile = "FIELDimageR.Extra-main.zip")
-setwd("~/") # Adjust this to your actual working directory
-
 # Unzip and install FIELDimageR.Extra
 unzip("FIELDimageR.Extra-main.zip") 
 file.rename("FIELDimageR.Extra-main", "FIELDimageR.Extra") 
@@ -51,6 +46,13 @@ shell("R CMD build FIELDimageR.Extra") # or system("R CMD build FIELDimageR.Extr
 fieldimageR_Extra_filename <- list.files(pattern = "FIELDimageR\\.Extra_.*\\.tar\\.gz$")
 install.packages(fieldimageR_Extra_filename, repos = NULL, type="source")
 
+# Remove FIELDimageR and FIELDimageR.Extra directories
+unlink("FIELDimageR", recursive = TRUE)
+unlink("FIELDimageR.Extra", recursive = TRUE)
+
 # Delete the downloaded zip files
-file.remove("FIELDimageR-master.zip")
-file.remove("FIELDimageR.Extra-main.zip")
+file.remove(fieldimageR_filename)
+file.remove(fieldimageR_Extra_filename)
+file.remove('2024_maize_orthos.zip')
+file.remove('FIELDimageR-master.zip')
+file.remove('FIELDimageR.Extra-main.zip')
