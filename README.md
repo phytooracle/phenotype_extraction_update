@@ -51,3 +51,5 @@ To create a shapefile, run the ```create_shapefile.Rmd``` notebook.
 
 ## Run phenotype extraction script
 To run phenotype extraction, including vegetation indices, canopy cover, and plant height, run the ```extract_all_phenotypes_fieldimager.R``` file.
+
+As orthomosaics become available throughout the seasons, you can add them to ```2024_maize_orthos```. Make sure to place RGB orthomosaics in ```2024_maize_orthos/rgb``` and DSM orthomosaics in ```2024_maize_orthos/dsm```. Once both RGB and DSM are added for a new flight, you can extract phenotypes from them using the ```extract_all_phenotypes_fieldimager.R``` file.
