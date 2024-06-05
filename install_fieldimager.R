@@ -1,7 +1,7 @@
 install.packages(c('terra','mapview','sf','stars','caret','devtools', 
                    'leafsync', 'nlme', 'lwgeom', 'mapedit', 'exactextractr',
                    'doParallel', 'attempt', 'config', 'DT', 'git2r',
-                   'DescTools'))
+                   'DescTools', 'fields'))
 
 # Install and load the curl package
 if (!require(curl)) {
