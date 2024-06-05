@@ -21,9 +21,9 @@ library(mapview)
 library(sf)
 library(stars)
 
-library(rgdal)
+# library(rgdal)
 library(sp)
-library(rgeos)
+# library(rgeos)
 ```
 
 ```{r}
