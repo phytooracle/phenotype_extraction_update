@@ -1,47 +1,86 @@
 ---
-title: "R Notebook"
+title: "Plot GIS Data"
 output: html_notebook
 editor_options: 
   chunk_output_type: console
 ---
 
-```{r}
-# Load the ggplot2 library
-library(ggplot2)
-library(dplyr)
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+# Install and load necessary packages
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(ggplot2, plotly, tidyverse, rmarkdown, cowplot)
 
-df <- read.csv("F120_beans_2023_fieldbook.csv")
-
-# Drop NA values from the data frame 'df'
-df <- df %>% filter(!is.na(date), !is.na(objArea), !is.na(genotype), !is.na(treatment))
-
-# Remove rows with genotype column value of "G40110"
-df <- df %>% filter(genotype != "G40110")
-
-# Convert date to Date type and sort
-df$date <- as.Date(df$date)
-df <- df[order(df$date),]
-
-# Define the y variables to iterate through
-y_vars <- c("Red", "Green", "Blue", "NGRDI", "BGI", "GLI", "BI", "SI", "VARI", "objArea")
-
-# Create directory if it doesn't exist
-if (!dir.exists("figures")) {
-  dir.create("figures")
-}
-
-# Iterate through the y variables and create a separate plot for each one
-for (y_var in y_vars) {
-  # Create the plot
-  p <- ggplot(df, aes(x = date, y = !!sym(y_var), group = interaction(genotype, treatment), color = genotype)) +
-    geom_smooth(se=FALSE, formula=y~x, fill=NA) +
-    labs(x = "Date", y = y_var) +
-    theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1)) + #, panel.background = element_rect(fill = "transparent")) +
-    facet_wrap(~ treatment) + #, ncol = 2)
-    scale_x_date(date_labels="%Y-%m-%d") # Add this line to format the date axis labels
-  
-  # Save the plot to a file in the 'figures' directory
-  ggsave(paste0("figures/", y_var, "_lowess_plot.png"), plot = p)
-}
-
+# Set global chunk options
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
+
+# Data Loading and Preparation
+
+```{r load}
+# Define the folder path for CSV files
+folder_path <- "./outputs/Maize/"
+fieldbook_path <- "./fieldmaps/2024_Maize_Fieldbook.csv"
+
+# List all CSV files in the folder
+file_list <- list.files(path = folder_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Read all CSV files into a list of data frames
+drone_dfs <- file_list %>%
+  set_names(~ basename(.) %>% str_extract(".*_2024")) %>%
+  map(read_csv)
+
+# Combine all data frames into one, adding a 'date' column from the file names
+combine_data <- bind_rows(drone_dfs, .id = "date")
+
+# Read metadata
+meta_df <- read_csv(fieldbook_path) %>%
+  mutate(plot = as.integer(plot)) %>%
+  select(-range, -column)
+
+# Ensure 'plot' and 'ID' are integers in the main data
+combine_data <- combine_data %>%
+  mutate(plot = as.integer(plot),
+         ID = as.integer(ID))
+
+# Join metadata with the main data
+combine_data <- left_join(combine_data, meta_df, by = "plot")
+
+# Convert dates
+combine_data <- combine_data %>%
+  mutate(date = strftime(as.Date(date, format = "%m_%d_%Y"),"%m-%d"))
+```
+
+# Plotting the Data
+
+```{r plotting, warning=FALSE, message=FALSE}
+# Define variables for plotting
+plot_vars <- c("Red_mean","Green_mean","Blue_mean","NGRDI_mean","BGI_mean","GLI_mean","BI_mean",
+               "SI_mean", "VARI_mean","AreaPercentage","PlantHeight","PH.10","PH.90","PlantBiomass" )
+
+# Boxplots for each variable
+boxplots <- plot_vars %>%
+  map(~ ggplot(combine_data, aes(x = date, y = .data[[.]])) +
+        geom_boxplot() +
+        theme_bw() +
+        labs(title = paste("Boxplot of", .), x = "Date", y = .))
+
+# Display boxplots 
+# Adjust the number displayed or arrange them as needed
+cowplot::plot_grid(plotlist = boxplots[1:6], ncol = 2)
+
+# Curves using variables over time
+# Note: You might have to change color and grouping depending on what you want to graph.
+# For example (color = Genotype, linetype = Treatment, group = interaction(Genotype, Treatment)) 
+curve_plots <- plot_vars %>%
+  map(~ ggplot(combine_data, aes(x = date, y = .data[[.]], color = Accession, group = Accession)) + 
+        geom_smooth(se = FALSE) +
+        theme_bw() +
+        theme(legend.position = "none") +
+        labs(title = paste("Trend of", .), x = "Date", y = .))
+
+# Display curve plots 
+# Adjust the number displayed or arrange them as needed
+cowplot::plot_grid(plotlist = curve_plots[1:6], ncol = 2)
+```
+
+
