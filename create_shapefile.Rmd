@@ -20,16 +20,12 @@ library(terra)
 library(mapview)
 library(sf)
 library(stars)
-
-# library(rgdal)
 library(sp)
-# library(rgeos)
 ```
 
 ```{r}
 # Open the orthomosaic
-# EX1 <- rast("downsampled_orthos/6_16_2023_F120_Beans_P4_15m_RGB_transparent_mosaic_group1_downsample.tif")
-EX1 <- rast("2024_maize_orthos/rgb/4_17_2024_Field8_Maize_P4_15m_RGB_transparent_mosaic_group1.tif")
+EX1 <- rast("./2024_maize_orthos/rgb/4_17_2024_Field8_Maize_P4_15m_RGB_transparent_mosaic_group1.tif")
 
 # Reduce resolution
 EX1<-aggregate(EX1, fact=4)
@@ -51,14 +47,14 @@ EX1.RemSoil <- rast(fieldMask(mosaic = EX1.Crop, Red = 1, Green = 2, Blue = 3, i
 
 ```{r}
 ### Field map identification 
-# Must add rows to fieldmap for split rows
-DataTable<-read.csv("fieldmaps/2024_Maize_Fieldmap.csv",header = T, check.names = FALSE)
+# Must add rows to fieldmap If there are split rows
+DataTable <- read.csv("./fieldmaps/2024_Maize_Fieldmap.csv",header = T, check.names = FALSE)
 names(DataTable) <- make.names(names(DataTable))
 
 # Select the columns you're interested in
-DataTable <- DataTable[, c("plot", "range", "column")]
+DataTable <- DataTable[, c("Plot", "Range", "Column")]
 
-fieldMap<-fieldMap(fieldPlot=DataTable$plot, fieldRow=DataTable$column, fieldColumn=DataTable$range, decreasing=T)
+fieldMap<-fieldMap(fieldPlot=DataTable$Plot, fieldRow=DataTable$Column, fieldColumn=DataTable$Range, decreasing=T)
 
 # Rotate matrix about x-axis (reverse order of rows)
 fieldMap <- fieldMap[nrow(fieldMap):1, ]
@@ -69,7 +65,8 @@ names(fieldMap) <- make.names(names(fieldMap))
 # It is very important to highlight that four points need to be set at the corners of the trial according to the
 # following sequence (1st point) top left corner, (2nd point) top right corner, (3rd point) bottom right
 # corner, and (4th point) bottom left corner.(i.e. clockwise from the top left)
-EX1.Shape<-fieldShape_render(mosaic = EX1.Crop, ncols = 18, nrows = 26, fieldMap = fieldMap, fieldData = DataTable, PlotID = "plot")
+### NOTE: You must change the ncols and nrows to match the fieldmap, be aware of the addtion of split rows
+EX1.Shape<-fieldShape_render(mosaic = EX1.Crop, ncols = 18, nrows = 26, fieldMap = fieldMap, fieldData = DataTable, PlotID = "Plot")
 
 # View Shapefile
 fieldView(mosaic = EX1.Crop,
@@ -81,7 +78,7 @@ fieldView(mosaic = EX1.Crop,
 
 ```{r}
 # Set the output file name
-output_file <- "shapefile/2024_maize_updated.shp"
+output_file <- "shapefile/2024_maize.shp"
 
 # Save the shapefile to a file
 st_write(EX1.Shape, dsn = output_file, driver = "ESRI Shapefile")

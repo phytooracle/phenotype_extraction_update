@@ -14,46 +14,52 @@ fig_height: 4
 # Load Libraries
 ```{r}
 library(dplyr)
+library(purrr)
 ```
 
 ```{r}
-# If the field does not have split rows, you can you the fieldbook as the fieldmap. 
-# If the field is orientated north-south, this will not work
-# If the field has more than 50 ranges, this will not work
+# If the split rows run across a range this will not work.
 
 ### Fieldbook
 path <- "fieldmaps/2024_Maize_Fieldbook.csv"
 
 fieldbook <- read.csv(path,header = T)
 
-# Must add columns to fieldmap for split rows
-# Step 1: Add 2 to all values above half in column
-half_value <- max(fieldbook$column) / 2
+# Need to know the total number of split rows
+# If n_split = 0 you can you the fieldbook as the fieldmap
+n_split = 1
 
-fieldbook$column[fieldbook$column > half_value] <- fieldbook$column[fieldbook$column > half_value] + 2
+# Must add Columns to fieldmap for split rows
+# Step 1: Get number of Columns between each splitrow
+betweenCol <-  max(fieldbook$Column)/(n_split+1)
 
-# Step 2: Add 2 new rows for all values in range
-new_rows <- data.frame()
-for (range in unique(fieldbook$range)) {
-    new_rows <- rbind(new_rows, c(range = sprintf("%02d", range), column = half_value+1, plot = paste0(90,sprintf("%02d", range))))
-    new_rows <- rbind(new_rows, c(range = sprintf("%02d", range), column = half_value+2, plot = paste0(90,range+max(fieldbook$range))))
-}
+# Step 2: Add 2*trunc((fieldbook$Column-1)/betweenCol) to all columns
+fieldbook$Column <- fieldbook$Column + 2*trunc((fieldbook$Column-1)/betweenCol)
 
-colnames(new_rows) <- c("range", "column", "plot")
+# Step 3: Add new rows for 
+new_rows <- map_dfr(unique(fieldbook$Range), function(Range) {
+  data.frame(
+    Range = sprintf("%02d", rep(Range, each = n_split)),
+    Column = unlist(map(1:(n_split), ~ c((.x) * betweenCol + (.x-1) * 2+1, (.x) * betweenCol + (.x-1) * 2 + 2))),
+    Plot = unlist(map(1:(n_split), ~ c(paste0(90, (.x ) * betweenCol + (.x-1) * 2+1), paste0(90, (.x ) * betweenCol + (.x-1) * 2 + 2))))
+  )
+})
 
-fieldbook$range <- sprintf("%02d", fieldbook$range)
-fieldbook$column <- sprintf("%02d", fieldbook$column)
-fieldbook$plot <- sprintf("%04d", fieldbook$plot)
-new_rows$range <- sprintf("%02s", new_rows$range)
-new_rows$column <- sprintf("%02s", new_rows$column)
-new_rows$plot <- sprintf("%04s", new_rows$plot)
+colnames(new_rows) <- c("Range", "Column", "Plot")
 
-new_rows$type <- "skip"
+fieldbook$Range <- sprintf("%02d", fieldbook$Range)
+fieldbook$Column <- sprintf("%02d", fieldbook$Column)
+fieldbook$Plot <- sprintf("%04d", fieldbook$Plot)
+new_rows$Range <- sprintf("%02s", new_rows$Range)
+new_rows$Column <- sprintf("%02s", new_rows$Column)
+new_rows$Plot <- sprintf("%04s", new_rows$Plot)
+
+new_rows$Type <- "skip"
 
 # Add the new rows to the original fieldbook
 fieldmap <- bind_rows(fieldbook, new_rows)
 
-# Remove the ".tif" substring from the ortho_path string
+# Replace the "book" substring with "map"
 result <- stringr::str_replace(basename(path), "book", "map")
 result <- paste0("./fieldmaps/",result)
 
